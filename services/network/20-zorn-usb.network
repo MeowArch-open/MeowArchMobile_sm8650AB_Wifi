@@ -1,0 +1,26 @@
+[Match]
+Name=usb0
+
+[Network]
+# The phone is the gateway for whatever is on the other end of the cable.
+Address=10.42.0.1/24
+DHCPServer=yes
+# systemd 256 and later let networkd own net.ipv4.conf.<iface>.forwarding for the
+# links it manages, and this rootfs runs 260. Without this, forwarding off this
+# interface is turned back off behind zorn-share.sh's back and clients get an
+# address, a gateway and no route out -- which is exactly what happened.
+IPv4Forwarding=yes
+# The link is configured before a host is necessarily plugged in.
+ConfigureWithoutCarrier=yes
+IPv6AcceptRA=no
+LinkLocalAddressing=no
+
+[DHCPServer]
+PoolOffset=10
+PoolSize=20
+EmitRouter=yes
+EmitDNS=yes
+# There is no resolver on the phone, so hand out public ones rather than point
+# the host at us. 223.5.5.5 is the address zorn-net-up.sh already pings, so it is
+# known reachable through this modem.
+DNS=223.5.5.5 119.29.29.29

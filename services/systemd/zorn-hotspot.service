@@ -1,0 +1,26 @@
+[Unit]
+Description=zorn: WLAN access point sharing the modem's data
+After=systemd-networkd.service
+Wants=systemd-networkd.service
+# The NAT rules that give clients a route out live in zorn-share.service, which
+# covers both this subnet and the USB one.
+Wants=zorn-share.service
+# wpa_supplicant is still enabled for station mode. Ordering after it and
+# conflicting with it makes the outcome deterministic: at boot the supplicant
+# starts, then this stops it and takes the radio. To go back the other way,
+# systemctl stop zorn-hotspot && systemctl start wpa_supplicant@wlp1s0.
+After=wpa_supplicant@wlp1s0.service
+Conflicts=wpa_supplicant@wlp1s0.service
+
+[Service]
+Type=simple
+ExecStartPre=/usr/local/sbin/zorn-hotspot.sh up
+ExecStart=/usr/local/sbin/hostapd /etc/hostapd/zorn.conf
+ExecStopPost=/usr/local/sbin/zorn-hotspot.sh down
+Restart=on-failure
+RestartSec=5
+StandardOutput=journal
+StandardError=journal
+
+[Install]
+WantedBy=multi-user.target
